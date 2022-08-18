@@ -33,11 +33,11 @@ classdef (Abstract) robot
             obj.l = geo.l;
             obj.r = geo.r;
             
-            obj.A        = geo.A;
-            obj.dAdx     = geo.dAdx;
-            obj.dAdz     = geo.dAdz;
-            obj.d2Adxz_L = geo.d2Adxz_L;
-            obj.d2Adz2_L = geo.d2Adz2_L;
+            obj.A        = @(x,z) geo.A(x,z);
+            obj.dAdx     = @(x,z) geo.dAdx(x,z);
+            obj.dAdz     = @(x,z) geo.dAdz(x,z);
+            obj.d2Adxz_L = @(x,z,L) geo.d2Adxz_L(x,z,L);
+            obj.d2Adz2_L = @(x,z,L) geo.d2Adz2_L(x,z,L);
             
             obj.geo = geo;
         end
@@ -45,7 +45,6 @@ classdef (Abstract) robot
     
     methods (Abstract)
         f(obj, x) % Drift vector field: f(x): (n, 1).
-        
         g(obj, x) % Input vector field: g(x): (n, m).
     end
 end
