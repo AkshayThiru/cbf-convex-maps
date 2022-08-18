@@ -1,4 +1,4 @@
-function [hij, z, L, J] = dist(ri, rj, z_init)
+function [hij, z, L, J, t_opt] = dist(ri, rj, z_init)
     eps = 1e-6; % Margin for index calculations.
     
     %% Minimum distance between strictly convex sets.
@@ -25,9 +25,9 @@ function [hij, z, L, J] = dist(ri, rj, z_init)
     end
     
     % Solve the minimum distance problem.
-    % tic;
+    tic;
     [z_opt, hij, ~,~, lambda, ~,~] = fmincon(obj, z0, [],[],[],[],[],[], cons, options);
-    % toc
+    t_opt = toc;
     
     % Extract outputs.
     z.i = z_opt(1:l);
@@ -55,7 +55,7 @@ function [c, ceq, GC, GCeq] = nonlcon(z, ri, rj)
     GCeq = [];
 end
 
-function H = hessianfunc(z, lambda, ri, rj)
+function H = hessianfunc(z, lambda, ri, rj) %#ok<DEFNU>
     l = ri.r;
     v = lambda.ineqnonlin;
     

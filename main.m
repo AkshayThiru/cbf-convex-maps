@@ -33,7 +33,7 @@ for i = 1:length(arr)
         prev{k} = zeros(2*arr{1}.l, 1);
     end
 end
-log = struct('h', []);
+log = struct('h', [], 't_opt', []);
 debug = [];
 display_text = 0;
 ME = [];
@@ -42,9 +42,9 @@ ME = [];
 for k = 1:length(t)-1
     % Evaluate control input.
     try
-        tic
+        start = tic;
         [u_t, prev, log_t, debug_t] = control(arr, prev, const);
-        time(k) = toc;
+        time(k) = toc(start);
     catch ME
         t = t(1:k);
         for i = 1:length(arr)
@@ -69,11 +69,10 @@ for k = 1:length(t)-1
         log.(logn{i})(k,:) = log_t.(logn{i});
     end
 end
+fprintf(repmat('\b', 1, display_text));
 
 % Average statistics.
-fprintf('\nmean = %1.4f s / %3.1f Hz, sd = %1.4f s \n', mean(time), 1/mean(time), std(time));
-fprintf('min. distance = %3.4f m \n', min(min(log.h)));
-% histogram(time);
+statistics(time, log, const);
 
 % Plot trajectories.
 figure(1)

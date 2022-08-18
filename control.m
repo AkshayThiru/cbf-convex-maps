@@ -4,7 +4,7 @@ function [u, prev, log, debug] = control(arr, prev, const)
     A_cbf = zeros(const.N, const.M);
     b_cbf = zeros(const.N, 1);
     
-    log = struct('h', []);
+    log = struct('h', [], 't_opt', []);
     debug = [];
     
     for i = 1:length(arr)
@@ -36,10 +36,14 @@ function [u, prev, log, debug] = control(arr, prev, const)
     options = optimoptions('quadprog','Display','off');
     if ~safety
         % Nominal controller.
+        tic;
         sol = quadprog(H, f, [],[],[],[],[],[],[], options);
+        log.t_opt(:,const.N+1) = toc;
     else
         % Safety-critical controller.
+        tic
         sol = quadprog(H, f, A_cbf, b_cbf, [],[],[],[],[], options);
+        log.t_opt(:,const.N+1) = toc;
     end
     
     u = cell(length(arr), 1);
@@ -56,7 +60,7 @@ function [A_cbf, b_cbf, prev_zij, log, debug] = input_constraint_ij(ri, rj, prev
     l = ri.l;
     
     % Compute minimum distances.
-    [hij, z, L, J] = dist(ri, rj, prev_zij);
+    [hij, z, L, J, t_opt] = dist(ri, rj, prev_zij);
     zi = z.i; zj = z.j;
     Li = L.i; Lj = L.j;
     prev_zij = [zi; zj];
@@ -87,6 +91,6 @@ function [A_cbf, b_cbf, prev_zij, log, debug] = input_constraint_ij(ri, rj, prev
     b_cbf = c_in + vec_z_in*hess_inv*vec_c_eq + c_fme;
     
     % Logging
-    log = struct('h', hij);
+    log = struct('h', hij, 't_opt', t_opt);
     debug = [];
 end
