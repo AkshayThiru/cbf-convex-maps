@@ -36,13 +36,23 @@ end
 log = struct('h', []);
 debug = [];
 display_text = 0;
+ME = [];
 
 %% Run simulation.
 for k = 1:length(t)-1
     % Evaluate control input.
-    tic
-    [u_t, prev, log_t, debug_t] = control(arr, prev, const);
-    time(k) = toc;
+    try
+        tic
+        [u_t, prev, log_t, debug_t] = control(arr, prev, const);
+        time(k) = toc;
+    catch ME
+        t = t(1:k);
+        for i = 1:length(arr)
+            x{i} = x{i}(:,1:k);
+        end
+        time = time(1:k);
+        break;
+    end
     % Statistics.
     fprintf(repmat('\b', 1, display_text));
     display_text = fprintf("time: %2.2f s, loop time: %1.4f s, frequency: %3.1f Hz", ...
@@ -85,22 +95,9 @@ arr_idx = 4;
 plot(t(1:end-1), log.h(:,arr_idx));
 
 % Animate robots.
-figure(4)
-hold on
-lims = 15.0;
-xlim([-lims lims]);
-ylim([-lims lims]);
-axis('equal');
-pts = cell(1, length(arr));
-for i = 1:length(arr)
-    points_i = arr{i}.geo.plot_outline(x{i}(:,1));
-    pts{i} = plot(points_i(1,:), points_i(2,:));
-end
-for k = 1:length(t)
-    for i = 1:length(arr)
-        points_i = arr{i}.geo.plot_outline(x{i}(:,k));
-        pts{i}.XData = points_i(1,:);
-        pts{i}.YData = points_i(2,:);
-    end
-    pause(dt);
+animate(arr, t, x, dt);
+
+%% Error handling.
+if ~isempty(ME)
+   rethrow(ME);
 end
