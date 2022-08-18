@@ -3,12 +3,25 @@ path(path, genpath('.\'));
 global safety
 safety = true;
 
+%% Display options.
+display_solve_stats = true;
+plot_stat_hist      = false;
+plot_figures        = true;
+save_figures        = false;
+plot_snapshot       = true;
+save_snapshot       = false;
+display_animation   = true;
+
 %% Initialize robots.
 arr = init_robots();
 
 %% Set constants.
-const.N = (length(arr)*(length(arr)-1))/2;
-const.m = ones(length(arr)+1, 1);
+const.a_cbf = 1; % ECBF rate.
+const.e     = 0.1; % Safety margin [m^2].
+const.M_L   = 1e3; % Bound on dL. |dL|.|dA| ~ |dh/dt|.
+
+const.N = (length(arr)*(length(arr)-1))/2; % NC2.
+const.m = ones(length(arr)+1, 1); % Index start and stop for inputs.
 for i = 1:length(arr)
     const.m(i+1) = const.m(i) + arr{i}.m;
 end
@@ -72,29 +85,26 @@ end
 fprintf(repmat('\b', 1, display_text));
 
 % Average statistics.
-statistics(time, log, const);
-
-% Plot trajectories.
-figure(1)
-hold on
-for i = 1:length(arr)
-    plot(x{i}(1,:), x{i}(2,:));
+if display_solve_stats
+    statistics(time, log, const, plot_stat_hist);
 end
 
-% Plot states.
-figure(2)
-hold on
-arr_idx = 2; state_idx = 3;
-plot(t, x{arr_idx}(state_idx,:));
-
 % Plot minimum distance.
-figure(3)
-hold on
-arr_idx = 4;
-plot(t(1:end-1), log.h(:,arr_idx));
+if plot_figures
+    plot_min_dist(T, t, arr, log, const, save_figures);
+end
+
+% Plot snapshot.
+if plot_snapshot
+    ts = [0 8];
+    t_idx = round(ts/dt) + 1;
+    snapshot(t_idx, x, arr, save_snapshot);
+end
 
 % Animate robots.
-animate(arr, t, x, dt);
+if display_animation
+    animate(arr, t, x, dt);
+end
 
 %% Error handling.
 if ~isempty(ME)

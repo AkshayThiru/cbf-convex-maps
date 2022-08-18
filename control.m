@@ -11,7 +11,7 @@ function [u, prev, log, debug] = control(arr, prev, const)
         for j = i+1:length(arr)
             k = ((2*length(arr)-i)*(i-1))/2 + j-i;
             
-            [Aij, bij, prev{k}, log_ij, ~] = input_constraint_ij(arr{i}, arr{j}, prev{k});
+            [Aij, bij, prev{k}, log_ij, ~] = input_constraint_ij(const, arr{i}, arr{j}, prev{k});
             A_cbf(k, const.m(i):const.m(i+1)-1) = Aij(1:arr{i}.m);
             A_cbf(k, const.m(j):const.m(j+1)-1) = Aij(1+arr{i}.m:end);
             b_cbf(k) = bij;
@@ -52,10 +52,10 @@ function [u, prev, log, debug] = control(arr, prev, const)
     end
 end
 
-function [A_cbf, b_cbf, prev_zij, log, debug] = input_constraint_ij(ri, rj, prev_zij)
-    a_cbf = 1; % ECBF rate.
-    e     = 0.1; % Safety margin [m].
-    M_L   = 1e3; % Bound on dL. |dL|.|dA| ~ |dh/dt|.
+function [A_cbf, b_cbf, prev_zij, log, debug] = input_constraint_ij(const, ri, rj, prev_zij)
+    a_cbf = const.a_cbf;
+    e     = const.e;
+    M_L   = const.M_L;
     
     l = ri.l;
     

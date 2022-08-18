@@ -6,6 +6,7 @@ classdef (Abstract) robot
         r % Num of inequalities.
         
         x  % State.
+        xi % Initial state.
         xf % Desired final state.
         
         A        % Handle for inequality: A(x, z): (r, 1).

@@ -1,4 +1,4 @@
-function [] = statistics(time, log, const)
+function [] = statistics(time, log, const, plot_stat_hist)
     pctl = @(v,p) interp1(linspace(0.5/length(v), 1-0.5/length(v), length(v))', sort(v), p*0.01, 'spline');
     
     fprintf('min. dist OPT: mean = %1.4f s, std = %1.4f s, p50 = %1.4f s, p99 = %1.4f s, freq = %4.1f Hz\n', ...
@@ -15,5 +15,8 @@ function [] = statistics(time, log, const)
         mean(time), std(time), pctl(time, 50), pctl(time, 99), 1/mean(time));
     
     fprintf('min. distance = %3.4f m\n', min(min(log.h)));
-    % histogram(time);
+    
+    if plot_stat_hist
+    	histogram(time);
+    end
 end
