@@ -22,7 +22,7 @@ function [] = print_constraints(A, l, u, sep_line_width)
     ineq_str = [l_str, sep_mat, A_str, sep_mat, u_str];
     
     if nargin < 4
-        sep_line_width = 0;
+        sep_line_width = size(ineq_str, 2);
     end
     disp(char(repmat('-', 1, sep_line_width)));
     disp('Linear inequality constraints:');

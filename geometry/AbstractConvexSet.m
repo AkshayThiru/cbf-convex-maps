@@ -30,7 +30,7 @@ classdef (Abstract) AbstractConvexSet < handle
         %   A: [nr, 1] vector.
         %   dAdx: [nr, nx] matrix,
         %       x-derivative of A, D_x A(x, z).
-        %   dAdy: [nr, nz] matrix,
+        %   dAdz: [nr, nz] matrix,
         %       z-derivative of A, D_z A(x, z).
         %   d2Adxz_y: [nz, nx] matrix,
         %       Tensor contraction of xz-derivative of A with y,

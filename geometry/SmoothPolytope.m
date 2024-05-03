@@ -21,6 +21,11 @@ classdef SmoothPolytope < AbstractConvexSet
         center = [] % Analytic center of the set when p = 0, R = I.
         radius = [] % Upper bound on the radius of the set.
     end
+
+    properties (Access = public)
+        surf_pts = []
+        mesh_pts = []
+    end
     
     methods
         function obj = SmoothPolytope(nz, P, alpha)
@@ -66,7 +71,46 @@ classdef SmoothPolytope < AbstractConvexSet
                 y(1) * kron(sm' * obj.A_mat, eye(obj.nz))];
         end
         
-        function [] = plot_surf(obj, x)
+        function [obj] = plot_surf(obj, x, hdl, fc, fa, ea)
+            if obj.nz ~= 2 && obj.nz ~= 3
+                error('Plotting for nz not 2 or 3 is not supported');
+            end
+            if isempty(obj.center) || isempty(obj.radius)
+                error(strcat('Specify the center and radius of a sphere ', ...
+                    'that encapsulates the object when at state (p,R)=(0,I)'));
+            end
+
+            p = x(1:obj.nz);
+            R = reshape(x(obj.nz+1:end), obj.nz, obj.nz);
+            if isempty(obj.surf_pts)
+                R_ = eye(obj.nz);
+                x_ = [zeros(obj.nz, 1); R_(:)];
+                obj.surf_pts = get_surf_points(obj, x_);
+                if obj.nz == 3
+                    obj.mesh_pts = get_mesh_points(obj, x_);
+                end
+            end
+            V_ = R * obj.surf_pts' + p * ones(1, size(obj.surf_pts, 1));
+            
+            if obj.nz == 2
+                fill(hdl, V_(1, :), V_(2, :), fc, 'FaceAlpha', fa, ...
+                    'EdgeColor', [0, 0, 0]);
+            elseif obj.nz == 3
+                K = convhull(V_(1, :), V_(2, :), V_(3, :), 'Simplify', true);
+                hold on
+                trisurf(K, V_(1, :), V_(2, :), V_(3, :), 'FaceColor', fc, ...
+                    'FaceAlpha', fa, 'EdgeColor', 'none', 'Parent', hdl);
+                mesh = obj.mesh_pts;
+                for i = 1:size(mesh, 3)
+                    for j = 1:size(mesh, 4)
+                        pts = mesh(:, :, i, j) * R' + ...
+                            ones(size(mesh, 1), 1) * p';
+                        plot3(hdl, pts(:, 1), pts(:, 2), pts(:, 3), ...
+                            'Color', [0, 0, 0, ea]);
+                    end
+                end
+                hold off
+            end
         end
     end
 end

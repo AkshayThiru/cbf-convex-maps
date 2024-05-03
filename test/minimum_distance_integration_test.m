@@ -15,7 +15,7 @@ re = RigidEllipsoid(3, Q);
 
 %% Define state sequences.
 dt = 0.01;
-T = 100;
+T = 25;
 t_seq = 0:dt:T;
 nT = length(t_seq);
 
@@ -49,6 +49,13 @@ yopt_rel_err = norm(yopt_rel_err_seq, Inf);
 disp(['Distance Inf norm error (m): ' num2str(dist_err)]);
 disp(['Primal solution Inf norm error (m): ' num2str(zopt_err)]);
 disp(['Dual solution Inf norm relative error (): ' num2str(yopt_rel_err)]);
+disp(['Number of optimization solutions: ' num2str(out_smp.n_opt_solution)]);
+
+figure();
+hold on;
+plot(t_seq, out_smp.kkt_err_seq, '-b');
+plot(t_seq, sqrt(out_smp.dist2_opt_seq) - sqrt(out_smp.dist2_ode_seq), '-r');
+hold off;
 
 
 %% Minimum distance ODE test between StaticPolytope and RigidEllipsoid.
@@ -70,7 +77,13 @@ yopt_rel_err = norm(yopt_rel_err_seq, Inf);
 disp(['Distance Inf norm error (m): ' num2str(dist_err)]);
 disp(['Primal solution Inf norm error (m): ' num2str(zopt_err)]);
 disp(['Dual solution Inf norm relative error (): ' num2str(yopt_rel_err)]);
+disp(['Number of optimization solutions: ' num2str(out_re.n_opt_solution)]);
 
+figure();
+hold on;
+plot(t_seq, out_re.kkt_err_seq, '-b');
+plot(t_seq, sqrt(out_re.dist2_opt_seq) - sqrt(out_re.dist2_ode_seq), '-r');
+hold off;
 
 %%
 path(current_path);
@@ -89,6 +102,7 @@ function [out] = compare_opt_ode(dt, t_seq, x_seq1, C1, x_seq2, C2)
     yopt_ode_seq = zeros(C1.nr + C2.nr, nT);
     t_opt_seq = zeros(1, nT);
     t_ode_seq = zeros(1, nT);
+    kkt_err_seq = zeros(1, nT);
 
     % Compute minimum distance using optimization.
     wb = waitbar(0, 'Starting distance optimization');
@@ -113,6 +127,7 @@ function [out] = compare_opt_ode(dt, t_seq, x_seq1, C1, x_seq2, C2)
     zopt_ode_seq(:, 1) = zopt_opt_seq(:, 1);
     yopt_ode_seq(:, 1) = yopt_opt_seq(:, 1);
     n_J2e = 0;
+    n_opt_solution = 0;
     
     wb = waitbar(0, 'Starting distance ODE');
     for k = 1:nT-1
@@ -128,11 +143,14 @@ function [out] = compare_opt_ode(dt, t_seq, x_seq1, C1, x_seq2, C2)
             minimum_distance_step(dt, x1, dx1, C1, x2, dx2, C2, ...
             z_opt, y_opt, 'euler');
         t_ode_seq(k) = toc(tic_);
-        n_J2e = n_J2e + o_.J2e;
+        if isfield(o_, 'J2e')
+            n_J2e = n_J2e + o_.J2e;
+        end
+        kkt_err_seq(k) = o_.kkt_err;
+        n_opt_solution = n_opt_solution + o_.opt_solution;
         waitbar(k/nT, wb, sprintf('Progress: %d %%', floor(k/nT*100)));
     end
     close(wb);
-
 
     out.dist2_opt_seq = dist2_opt_seq;
     out.dist2_ode_seq = dist2_ode_seq;
@@ -143,4 +161,6 @@ function [out] = compare_opt_ode(dt, t_seq, x_seq1, C1, x_seq2, C2)
     out.t_opt_seq = t_opt_seq;
     out.t_ode_seq = t_ode_seq;
     out.n_J2e = n_J2e;
+    out.kkt_err_seq = kkt_err_seq;
+    out.n_opt_solution = n_opt_solution;
 end
