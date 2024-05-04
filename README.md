@@ -1,4 +1,4 @@
-# convex-set-cbf
+# cbf-convex-maps
 A repository for enforcing control barrier function constraints between strongly convex maps.
 
 We provide:
